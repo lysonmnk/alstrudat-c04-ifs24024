@@ -1,1 +1,1 @@
-Minimum cost: 10
+Minimum cost: -1
