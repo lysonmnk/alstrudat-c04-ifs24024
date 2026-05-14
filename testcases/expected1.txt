@@ -1,2 +1,1 @@
-Name: Abdullah
-Age: 23
+Minimum cost: 10
