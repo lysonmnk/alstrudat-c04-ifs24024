@@ -95,6 +95,6 @@ public class Program {
         // -------------------------------------------------------
 
         // TODO: Remove this placeholder and write your solution.
-        System.out.println("Minimum cost: -1");
+        System.out.println("Minimum cost: -10");
     }
 }
