@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Pastikan script berhenti jika terjadi error fatal
+# Hentikan script jika terjadi error fatal
 set -e
 
-# Compile Java program dengan Maven
 echo "🔨 Compiling Java program..."
 if ! mvn clean package; then
   echo "❌ Build failed! Exiting..."
@@ -11,9 +10,15 @@ if ! mvn clean package; then
 fi
 echo "✅ Build successful!"
 
-# Pastikan file weights.txt ada
-if [ ! -f testcases/weights.txt ]; then
-  echo "❌ Error: File testcases/weights.txt not found!"
+# Pastikan folder testcases ada
+if [ ! -d "testcases" ]; then
+  echo "❌ Error: Folder 'testcases' tidak ditemukan!"
+  exit 1
+fi
+
+# Pastikan weights.txt ada
+if [ ! -f "testcases/weights.txt" ]; then
+  echo "❌ Error: File 'testcases/weights.txt' tidak ditemukan!"
   exit 1
 fi
 
@@ -21,40 +26,41 @@ total_score=0
 index=1
 
 # Baca bobot dari file weights.txt
-while read -r weight; do
+while read -r weight || [ -n "$weight" ]; do
+  # Hilangkan spasi/karakter tersembunyi
+  weight=$(echo "$weight" | tr -d '\r')
+  
+  # Lewati jika baris kosong
+  if [ -z "$weight" ]; then continue; fi
+
   echo "|--------------------------------------------------|"
-  echo "Test Case $index"
+  echo "🚀 Running Test Case $index (Weight: $weight%)"
+  
   input_file="testcases/input$index.txt"
   expected_file="testcases/expected$index.txt"
   output_file="testcases/output$index.txt"
 
-  # Pastikan file test case tersedia
-  if [ ! -f "$input_file" ] || [ ! -f "$expected_file" ]; then
-    echo "⚠️ Warning: Test case $index files missing. Skipping..."
-    index=$((index + 1))
-    continue
+  # Debugging: Cek keberadaan file
+  if [ ! -f "$input_file" ]; then
+    echo "❌ Error: File $input_file tidak ditemukan!"
+    exit 1
+  fi
+  if [ ! -f "$expected_file" ]; then
+    echo "❌ Error: File $expected_file tidak ditemukan!"
+    exit 1
   fi
 
-  echo "🚀 Running test case $index (Weight: $weight%)..."
-
   # Jalankan program menggunakan jar yang sudah di-build
-  # -w pada diff mengabaikan spasi/newline tambahan
   java -jar target/app.jar < "$input_file" > "$output_file"
-
-  # Tampilkan output untuk debugging di log
-  echo "🔍 Actual Output:"
-  cat "$output_file"
-  echo "🔍 Expected Output:"
-  cat "$expected_file"
 
   # Bandingkan output (-w mengabaikan spasi/newline)
   if diff -w -q "$output_file" "$expected_file" > /dev/null; then
-    echo "✅ Test case $index passed! (+$weight%)"
+    echo "✅ Test case $index passed!"
     total_score=$((total_score + weight))
   else
-    echo "❌ Test case $index failed!"
-    echo "Diff (Actual vs Expected):"
-    diff -w "$output_file" "$expected_file"
+    echo "❌ Test case $index FAILED!"
+    echo "--- Perbedaan (Actual < vs > Expected) ---"
+    diff -w "$output_file" "$expected_file" || true
   fi
 
   index=$((index + 1))
@@ -68,3 +74,5 @@ if [ "$total_score" -ne 100 ]; then
   echo "❌ Error: Final score is $total_score% (Expected 100%)."
   exit 1
 fi
+
+echo "✅ Semua tes berhasil!"
