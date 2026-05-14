@@ -3,7 +3,6 @@ package del.alstrudat;
 import java.util.*;
 
 public class Program {
-
     public static void solve(Scanner scanner) {
         if (!scanner.hasNextInt()) return;
 
@@ -15,7 +14,7 @@ public class Program {
         for (int i = 0; i < K; i++) {
             int city = scanner.nextInt();
             long penalty = scanner.nextLong();
-            if (city >= 0 && city <= N) {
+            if (city >= 1 && city <= N) {
                 curse[city] = penalty;
             }
         }
@@ -27,21 +26,22 @@ public class Program {
             int u = scanner.nextInt();
             int v = scanner.nextInt();
             int w = scanner.nextInt();
-            adj.get(u).add(new int[]{v, w});
+            // Validasi indeks
+            if (u >= 1 && u <= N && v >= 1 && v <= N) {
+                adj.get(u).add(new int[]{v, w});
+            }
         }
 
         int S = scanner.nextInt();
         int T = scanner.nextInt();
 
-        // Menggunakan nilai INF yang cukup besar tapi aman dari overflow
-        final long INF = 1_000_000_000_000_000L; 
+        // Gunakan INF yang cukup besar
+        long INF = Long.MAX_VALUE / 4; 
         long[][] dist = new long[N + 1][2];
         for (long[] row : dist) Arrays.fill(row, INF);
-
-        // PriorityQueue: {cost, city, portalUsed}
-        PriorityQueue<long[]> pq = new PriorityQueue<>(Comparator.comparingLong(a -> a[0]));
-
+        
         dist[S][0] = 0L;
+        PriorityQueue<long[]> pq = new PriorityQueue<>(Comparator.comparingLong(a -> a[0]));
         pq.offer(new long[]{0L, S, 0L});
 
         while (!pq.isEmpty()) {
@@ -56,22 +56,19 @@ public class Program {
                 int v = edge[0];
                 int w = edge[1];
 
-                // --- OPSI 1: TANPA PORTAL (p tetap) ---
-                // Kutukan di kota u dibayar saat meninggalkan u jika portal belum dipakai
+                // --- Opsi 1: Tetap di status p ---
+                // Jika p == 0, kita membayar kutukan di kota u SEBELUM meninggalkan u
                 long penalty = (p == 0) ? curse[u] : 0L;
-                long costNormal = d + w + penalty;
-                
-                if (costNormal < dist[v][p]) {
-                    dist[v][p] = costNormal;
+                if (dist[u][p] + w + penalty < dist[v][p]) {
+                    dist[v][p] = dist[u][p] + w + penalty;
                     pq.offer(new long[]{dist[v][p], v, p});
                 }
 
-                // --- OPSI 2: PAKAI PORTAL DI KOTA u (Hanya jika p == 0) ---
-                // Sesuai aturan: biaya kutukan dibayar SEBELUM portal dipakai
+                // --- Opsi 2: Pakai Portal di kota u (hanya jika p == 0) ---
                 if (p == 0) {
-                    long costPortal = d + penalty; // Jalan jadi 0, tapi kutukan tetap bayar
-                    if (costPortal < dist[v][1]) {
-                        dist[v][1] = costPortal;
+                    // Pakai portal: biaya jalan 0, kutukan tetap kena
+                    if (dist[u][0] + penalty < dist[v][1]) {
+                        dist[v][1] = dist[u][0] + penalty;
                         pq.offer(new long[]{dist[v][1], v, 1});
                     }
                 }
@@ -79,7 +76,6 @@ public class Program {
         }
 
         long ans = Math.min(dist[T][0], dist[T][1]);
-
         if (ans >= INF) {
             System.out.println("Minimum cost: -1");
         } else {
