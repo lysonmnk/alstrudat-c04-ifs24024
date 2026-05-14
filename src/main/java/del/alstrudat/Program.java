@@ -3,8 +3,10 @@ package del.alstrudat;
 import java.util.*;
 
 public class Program {
+
     public static void solve(Scanner scanner) {
         if (!scanner.hasNextInt()) return;
+        
         int N = scanner.nextInt();
         int M = scanner.nextInt();
         int K = scanner.nextInt();
@@ -13,7 +15,9 @@ public class Program {
         for (int i = 0; i < K; i++) {
             int city = scanner.nextInt();
             long penalty = scanner.nextLong();
-            curse[city] = penalty;
+            if (city >= 1 && city <= N) {
+                curse[city] = penalty;
+            }
         }
 
         List<List<int[]>> adj = new ArrayList<>();
@@ -29,6 +33,7 @@ public class Program {
         int S = scanner.nextInt();
         int T = scanner.nextInt();
 
+        // dist[kota][portalUsed]
         long[][] dist = new long[N + 1][2];
         for (long[] row : dist) Arrays.fill(row, Long.MAX_VALUE);
 
@@ -49,16 +54,20 @@ public class Program {
                 int v = edge[0];
                 int w = edge[1];
 
-                // Opsi A: Tetap dengan status p (Portal belum/sudah digunakan)
+                // Opsi A: Tidak menggunakan portal (atau portal sudah dipakai sebelumnya)
+                // Jika p == 0, kita masih kena kutukan di kota u saat meninggalkannya.
+                // Jika p == 1, kita sudah kebal kutukan.
                 long costNormal = d + w + (p == 0 ? curse[u] : 0);
                 if (costNormal < dist[v][p]) {
                     dist[v][p] = costNormal;
                     pq.add(new long[]{dist[v][p], v, p});
                 }
 
-                // Opsi B: Gunakan portal di sini (jika p == 0)
+                // Opsi B: Aktifkan portal di kota u (hanya jika p == 0)
+                // Biaya perjalanan menjadi 0, dan kutukan di u tidak berlaku 
+                // karena portal digunakan untuk "time warp" keluar dari kota tersebut.
                 if (p == 0) {
-                    long costPortal = d + 0 + curse[u];
+                    long costPortal = d + 0; 
                     if (costPortal < dist[v][1]) {
                         dist[v][1] = costPortal;
                         pq.add(new long[]{dist[v][1], v, 1});
