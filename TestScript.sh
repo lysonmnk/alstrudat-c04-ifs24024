@@ -40,7 +40,7 @@ while read -r weight; do
   echo "🚀 Running test case $index (Weight: $weight%)..."
 
   # Jalankan program dengan input dari file dan simpan outputnya
-  java -cp target/app.jar del.alstrudat.App < "$input_file" > "$output_file"
+ java -cp "target/classes" del.alstrudat.App < "$input_file" > "$output_file"
 
   # Simpan output aktual ke dalam folder 'testcases' (actual_output)
   cp "$output_file" "$actual_output_file"
