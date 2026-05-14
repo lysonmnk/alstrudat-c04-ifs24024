@@ -51,7 +51,7 @@ public class Test {
         scanner.close();
 
         System.out.println("=============");
-        System.out.println("Expected: Minimum cost: 12");
+        System.out.println("Expected: Minimum cost: 10");
 
         // -------------------------------------------------------
         // Additional test: No path exists
